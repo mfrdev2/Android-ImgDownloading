@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">My Download Demo</string>
+
+    <string-array name="listName">
+        <item>Image1</item>
+        <item>Image2</item>
+        <item>Image3</item>
+        <item>Image4</item>
+        <item>Image5</item>
+        <item>Image6</item>
+        <item>Image7</item>
+    </string-array>
+    <string-array name="imageLink">
+        <item>https://www.pexels.com/photo/1212693/download/</item>
+        <item>https://www.pexels.com/photo/863963/download/</item>
+        <item>https://www.pexels.com/photo/1563355/download/</item>
+        <item>https://www.pexels.com/photo/1519088/download/</item>
+        <item>https://www.pexels.com/photo/937980/download/</item>
+        <item>https://www.pexels.com/photo/1595655/download/</item>
+        <item>https://www.pexels.com/photo/848573/download/</item>
+    </string-array>
+</resources>
