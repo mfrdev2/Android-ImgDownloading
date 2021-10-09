@@ -10,6 +10,7 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listView.setAdapter(customAdapter);
 
         listView.setOnItemClickListener(this);
+        binding.progressBar.setMax(100);
 
 
     }
@@ -92,14 +94,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if(view == binding.downloadBtnId){
             if(isInternetConnected()){
-                    binding.linearLayoutId.setVisibility(binding.linearLayoutId.VISIBLE);
-                    new DownloadThread().start();
+                   // binding.linearLayoutId.setVisibility(binding.linearLayoutId.VISIBLE);
+                  //  new DownloadThread().start();
+                new MyTask().execute(binding.linkInputTextId.getText().toString());
             }else {
                 Toast.makeText(getApplicationContext(),"No Internet",Toast.LENGTH_LONG).show();
             }
         }
     }
-    public boolean downloadImage(String url){
+   /* public boolean downloadImage(String url){
         boolean successful = false;
         URL downlodUrl = null;
         HttpURLConnection connection = null;
@@ -143,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
         return false;
-    }
+    }*/
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -151,8 +154,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         binding.linkInputTextId.setText(imgLink[i]);
         binding.linearLayoutId.setVisibility(binding.linearLayoutId.INVISIBLE);
     }
-
-    class DownloadThread extends Thread{
+/*Child Thread */
+/*    class DownloadThread extends Thread{
         @Override
         public void run() {
             super.run();
@@ -161,5 +164,103 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
         }
+    }*/
+
+    class MyTask extends AsyncTask<String,Integer,Boolean> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            binding.linearLayoutId.setVisibility(binding.linearLayoutId.VISIBLE);
+
+        }
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+           // return downloadImage(strings[0]);
+            boolean successful = false;
+            URL downlodUrl = null;
+            HttpURLConnection connection = null;
+            InputStream inputStream = null;
+            FileOutputStream fileOutputStream = null;
+            File file = null;
+            try {
+                downlodUrl = new URL(strings[0]);
+                connection = (HttpURLConnection) downlodUrl.openConnection();
+                inputStream = connection.getInputStream();
+                Random g = new Random();
+                file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath()+"/"+ Uri.parse(strings[0]).getLastPathSegment()+g.nextInt());
+                String dir = file.getAbsolutePath();
+                if (!dir.contains(".jpg") || !dir.contains(".png")) {
+                    dir = dir+".jpg";
+                }
+                fileOutputStream = new FileOutputStream(dir);
+                int read = -1;
+                int imgFullSize = connection.getContentLength();
+
+                int cSize = 0;
+                byte[] buffer = new byte[1024];
+                while ((read = inputStream.read(buffer)) != -1){
+                    fileOutputStream.write(buffer, 0, read);
+                    cSize+=read;
+                    int puValue= ((cSize*100)/imgFullSize);
+                 //   Log.d("Progress: ",puValue+" : "+imgFullSize);
+                    publishProgress(puValue);
+                }
+
+                successful = true;
+                return successful;
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e ) {
+                e.printStackTrace();
+            }finally {
+                if(connection != null){
+                    connection.disconnect();
+
+                }
+                if(inputStream != null){
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return false;
+
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+          //  Log.d("Progress: ",""+values[0]);
+            binding.progressBar.setProgress(values[0]);
+
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            super.onPostExecute(aBoolean);
+            if(aBoolean){
+                Toast.makeText(getApplicationContext(),"Download Completed"
+                ,Toast.LENGTH_LONG).show();
+            }
+            binding.linearLayoutId.setVisibility(binding.linearLayoutId.INVISIBLE);
+        }
+    }
+
+    private int inputStreamLength(InputStream inputStream) {
+        int read = -1;
+        int size = 0;
+        byte[] buffer = new byte[1024];
+        try {
+            while ((read = inputStream.read(buffer)) != -1){
+                size += read;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return size;
     }
 }
